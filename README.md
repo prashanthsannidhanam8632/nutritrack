@@ -242,3 +242,4 @@ git push origin feature/your-feature-name
 ---
 
 *Built with React + Vite. Nutritional data sourced from USDA FoodData Central.*
+# AI-powered-nutrition-tracker
