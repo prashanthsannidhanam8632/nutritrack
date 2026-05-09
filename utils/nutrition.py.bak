@@ -1,0 +1,114 @@
+# =============================================================================
+# utils/nutrition.py — Pure nutrition calculation functions
+# =============================================================================
+
+def scale_nutrition(base: dict, qty: float) -> dict:
+    """
+    Scale a nutrition dict by a quantity multiplier.
+    
+    Args:
+        base: dict with keys cal, p, f, c, fi, na
+        qty:  multiplier (e.g. 1.5 for 1.5 servings)
+    
+    Returns:
+        New dict with scaled values. Calories rounded to int,
+        macros rounded to 1 decimal place.
+    
+    Example:
+        >>> scale_nutrition({"cal": 100, "p": 10, "f": 5, "c": 12, "fi": 2, "na": 200}, 2)
+        {"cal": 200, "p": 20.0, "f": 10.0, "c": 24.0, "fi": 4.0, "na": 400}
+    """
+    return {
+        "cal": round(base["cal"] * qty),
+        "p":   round(base["p"]   * qty, 1),
+        "f":   round(base["f"]   * qty, 1),
+        "c":   round(base["c"]   * qty, 1),
+        "fi":  round(base["fi"]  * qty, 1),
+        "na":  round(base["na"]  * qty),
+    }
+
+
+def sum_nutrition(items: list) -> dict:
+    """
+    Sum all nutrition values across a list of log items.
+    
+    Args:
+        items: list of dicts, each containing a "nutrition" key
+    
+    Returns:
+        Total nutrition dict {cal, p, f, c, fi, na}
+    
+    Example:
+        >>> log = [{"nutrition": {"cal":100,"p":10,"f":5,"c":12,"fi":2,"na":200}},
+        ...        {"nutrition": {"cal":200,"p":20,"f":8,"c":25,"fi":3,"na":400}}]
+        >>> sum_nutrition(log)
+        {"cal": 300, "p": 30.0, ...}
+    """
+    totals = {"cal": 0, "p": 0.0, "f": 0.0, "c": 0.0, "fi": 0.0, "na": 0}
+    for item in items:
+        n = item.get("nutrition", {})
+        totals["cal"] += n.get("cal", 0)
+        totals["p"]   += n.get("p",   0)
+        totals["f"]   += n.get("f",   0)
+        totals["c"]   += n.get("c",   0)
+        totals["fi"]  += n.get("fi",  0)
+        totals["na"]  += n.get("na",  0)
+    return totals
+
+
+def macro_percentages(p: float, c: float, f: float) -> dict:
+    """
+    Calculate what percentage of total calories comes from each macro.
+    
+    Args:
+        p: protein grams
+        c: carbohydrate grams
+        f: fat grams
+    
+    Returns:
+        dict with protein_pct, carbs_pct, fat_pct (sum ~100)
+    
+    Note:
+        Protein = 4 cal/g, Carbs = 4 cal/g, Fat = 9 cal/g
+    """
+    cal_from_protein = p * 4
+    cal_from_carbs   = c * 4
+    cal_from_fat     = f * 9
+    total = cal_from_protein + cal_from_carbs + cal_from_fat
+
+    if total == 0:
+        return {"protein_pct": 0, "carbs_pct": 0, "fat_pct": 0}
+
+    return {
+        "protein_pct": round((cal_from_protein / total) * 100),
+        "carbs_pct":   round((cal_from_carbs   / total) * 100),
+        "fat_pct":     round((cal_from_fat     / total) * 100),
+    }
+
+
+def progress_pct(current: float, goal: float) -> tuple:
+    """
+    Calculate progress percentage and over-budget flag.
+    
+    Returns:
+        (pct: float capped at 100, over: bool)
+    """
+    if goal <= 0:
+        return 0.0, False
+    pct  = min((current / goal) * 100, 100)
+    over = current > goal
+    return pct, over
+
+
+def items_by_meal(log: list) -> dict:
+    """
+    Group log items by their meal type.
+    
+    Returns:
+        dict mapping meal name -> list of items
+    """
+    grouped = {}
+    for item in log:
+        meal = item.get("meal", "Snack")
+        grouped.setdefault(meal, []).append(item)
+    return grouped
