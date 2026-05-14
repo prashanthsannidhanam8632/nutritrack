@@ -647,7 +647,6 @@ When you ask a question, NutriBot does 3 things:
     for i, example in enumerate(examples):
         with example_cols[i % 2]:
             if st.button(f"💬 {example}", key=f"ex_{i}", use_container_width=True):
-                st.session_state.chat_history.append({"role": "user", "content": example})
                 st.session_state["pending_question"] = example
                 st.rerun()
 
