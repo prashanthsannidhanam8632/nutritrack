@@ -648,6 +648,7 @@ When you ask a question, NutriBot does 3 things:
         with example_cols[i % 2]:
             if st.button(f"💬 {example}", key=f"ex_{i}", use_container_width=True):
                 st.session_state.chat_history.append({"role": "user", "content": example})
+                st.session_state["pending_question"] = example
                 st.rerun()
 
     st.markdown("---")
@@ -667,7 +668,12 @@ When you ask a question, NutriBot does 3 things:
                             st.markdown(f"**{src['name']}** ({src['type']}) — {src['text'][:120]}...")
 
     # ── Chat input ────────────────────────────────────────────────────────────
-    user_input = st.chat_input("Ask about nutrition, food or recipes...")
+    # Handle example button clicks
+    if "pending_question" in st.session_state and st.session_state["pending_question"]:
+        user_input = st.session_state["pending_question"]
+        st.session_state["pending_question"] = ""
+    else:
+        user_input = st.chat_input("Ask about nutrition, food or recipes...")
 
     if user_input:
         # Add user message
