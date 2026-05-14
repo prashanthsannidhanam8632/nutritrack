@@ -31,7 +31,7 @@ def generate_answer(query, conversation_history=None):
     messages.append({"role": "user", "content": augmented})
     try:
         client = anthropic.Anthropic(api_key=api_key)
-        response = client.messages.create(model="claude-opus-4-5", max_tokens=1024, system=SYSTEM_PROMPT, messages=messages)
+        response = client.messages.create(model="claude-haiku-4-5-20251001", max_tokens=1024, system=SYSTEM_PROMPT, messages=messages)
         return {"answer": response.content[0].text, "sources": relevant_chunks, "error": None}
     except anthropic.AuthenticationError:
         return {"answer": "Invalid API key. Check your key at console.anthropic.com", "sources": [], "error": "auth_error"}
