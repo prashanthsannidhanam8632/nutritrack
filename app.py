@@ -676,8 +676,9 @@ When you ask a question, NutriBot does 3 things:
         user_input = st.chat_input("Ask about nutrition, food or recipes...")
 
     if user_input:
-        # Add user message
-        st.session_state.chat_history.append({"role": "user", "content": user_input})
+        # Only add if not already the last message
+        if not st.session_state.chat_history or st.session_state.chat_history[-1].get("content") != user_input:
+            st.session_state.chat_history.append({"role": "user", "content": user_input})
 
         # Show user message immediately
         with st.chat_message("user"):
