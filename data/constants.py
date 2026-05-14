@@ -17,12 +17,12 @@ GOAL_PRESETS = [
 DEFAULT_GOALS = {"cal": 2000, "p": 175, "c": 240, "f": 60, "fi": 35, "na": 2300}
 
 MACRO_META = [
-    {"key": "cal", "label": "Calories",     "icon": "🔥", "unit": "kcal", "color": "#f97316", "step": 50,  "min": 500,  "max": 6000},
-    {"key": "p",   "label": "Protein",      "icon": "💪", "unit": "g",    "color": "#38bdf8", "step": 5,   "min": 10,   "max": 500},
-    {"key": "c",   "label": "Carbs",        "icon": "🌾", "unit": "g",    "color": "#22c55e", "step": 5,   "min": 10,   "max": 800},
-    {"key": "f",   "label": "Fat",          "icon": "🫙", "unit": "g",    "color": "#a78bfa", "step": 5,   "min": 10,   "max": 350},
-    {"key": "fi",  "label": "Fiber",        "icon": "🌿", "unit": "g",    "color": "#86efac", "step": 1,   "min": 5,    "max": 80},
-    {"key": "na",  "label": "Sodium",       "icon": "🧂", "unit": "mg",   "color": "#f87171", "step": 100, "min": 500,  "max": 6000},
+    {"key": "cal", "label": "Calories", "icon": "🔥", "unit": "kcal", "color": "#f97316", "step": 50,  "min": 500,  "max": 6000},
+    {"key": "p",   "label": "Protein",  "icon": "💪", "unit": "g",    "color": "#38bdf8", "step": 5,   "min": 10,   "max": 500},
+    {"key": "c",   "label": "Carbs",    "icon": "🌾", "unit": "g",    "color": "#22c55e", "step": 5,   "min": 10,   "max": 800},
+    {"key": "f",   "label": "Fat",      "icon": "🫙", "unit": "g",    "color": "#a78bfa", "step": 5,   "min": 10,   "max": 350},
+    {"key": "fi",  "label": "Fiber",    "icon": "🌿", "unit": "g",    "color": "#86efac", "step": 1,   "min": 5,    "max": 80},
+    {"key": "na",  "label": "Sodium",   "icon": "🧂", "unit": "mg",   "color": "#f87171", "step": 100, "min": 500,  "max": 6000},
 ]
 
 APP_NAME = "NutriTrack"
