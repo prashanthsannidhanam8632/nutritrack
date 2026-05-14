@@ -71,6 +71,7 @@ def init_state():
         "rcp_cat":      "All",
         "veg_filter":   "All",
         "search":       "",
+        "chat_history": [],
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -135,8 +136,8 @@ def render_header():
 # ── BOTTOM NAV ────────────────────────────────────────────────────────────────
 def render_nav():
     st.markdown("<div style='height:60px;'></div>", unsafe_allow_html=True)
-    tabs = [("🏠", "Home", "home"), ("📖", "Recipes", "recipes"), ("🍳", "Cook", "cook"), ("📊", "Summary", "summary")]
-    cols = st.columns(4)
+    tabs = [("🏠", "Home", "home"), ("📖", "Recipes", "recipes"), ("🍳", "Cook", "cook"), ("📊", "Summary", "summary"), ("🤖", "NutriBot", "nutribot")]
+    cols = st.columns(5)
     for col, (icon, label, screen) in zip(cols, tabs):
         active = st.session_state.screen == screen
         with col:
@@ -606,6 +607,118 @@ def screen_summary():
         st.rerun()
 
 # ══════════════════════════════════════════════════════════════════════════════
+# 🤖 NUTRIBOT SCREEN — RAG-Powered AI Nutrition Assistant
+# ══════════════════════════════════════════════════════════════════════════════
+def screen_nutribot():
+    st.markdown("## 🤖 NutriBot")
+    st.markdown(
+        "<div style='font-size:13px;color:#7a8fa8;margin-bottom:8px;'>"
+        "Ask me anything about nutrition, food, recipes or cooking. "
+        "I answer from NutriTrack's database of 167 dishes, 76 ingredients and 28+ recipes."
+        "</div>",
+        unsafe_allow_html=True,
+    )
+
+    # ── How it works explainer ────────────────────────────────────────────────
+    with st.expander("💡 How NutriBot works (RAG explained)"):
+        st.markdown("""
+**RAG = Retrieval Augmented Generation**
+
+When you ask a question, NutriBot does 3 things:
+
+1. **🔍 Retrieve** — Searches NutriTrack's 275 food chunks to find the most relevant dishes/recipes for your question
+2. **📋 Augment** — Combines those results with your question into a detailed prompt
+3. **🤖 Generate** — Sends everything to Claude AI which answers specifically from NutriTrack's data
+
+**Why RAG?** Without it, an AI would give generic answers. With RAG, it answers specifically about the foods in *this* app's database.
+        """)
+
+    # ── Example questions ─────────────────────────────────────────────────────
+    st.markdown("**Try asking:**")
+    example_cols = st.columns(2)
+    examples = [
+        "What are the highest protein Indian dishes?",
+        "Suggest a low calorie breakfast under 300 calories",
+        "How do I cook Butter Chicken step by step?",
+        "What vegetarian dishes have more than 15g protein?",
+        "Compare the macros of Chicken Biryani vs Dal Makhani",
+        "What ingredients are high in fiber?",
+    ]
+    for i, example in enumerate(examples):
+        with example_cols[i % 2]:
+            if st.button(f"💬 {example}", key=f"ex_{i}", use_container_width=True):
+                st.session_state.chat_history.append({"role": "user", "content": example})
+                st.rerun()
+
+    st.markdown("---")
+
+    # ── Chat history display ──────────────────────────────────────────────────
+    for message in st.session_state.chat_history:
+        if message["role"] == "user":
+            with st.chat_message("user"):
+                st.write(message["content"])
+        else:
+            with st.chat_message("assistant", avatar="🤖"):
+                st.write(message["content"])
+                # Show sources if available
+                if message.get("sources"):
+                    with st.expander(f"📚 Sources used ({len(message['sources'])} items from NutriTrack database)"):
+                        for src in message["sources"][:4]:
+                            st.markdown(f"**{src['name']}** ({src['type']}) — {src['text'][:120]}...")
+
+    # ── Chat input ────────────────────────────────────────────────────────────
+    user_input = st.chat_input("Ask about nutrition, food or recipes...")
+
+    if user_input:
+        # Add user message
+        st.session_state.chat_history.append({"role": "user", "content": user_input})
+
+        # Show user message immediately
+        with st.chat_message("user"):
+            st.write(user_input)
+
+        # Generate RAG answer
+        with st.chat_message("assistant", avatar="🤖"):
+            with st.spinner("🔍 Searching NutriTrack database..."):
+                try:
+                    from rag.generator import generate_answer
+                    result = generate_answer(
+                        query=user_input,
+                        conversation_history=[
+                            m for m in st.session_state.chat_history[:-1]
+                            if m["role"] in ("user", "assistant")
+                        ],
+                    )
+                    answer  = result["answer"]
+                    sources = result["sources"]
+                except Exception as e:
+                    answer  = f"⚠️ Error: {str(e)}"
+                    sources = []
+
+            st.write(answer)
+
+            if sources:
+                with st.expander(f"📚 Sources used ({len(sources)} items from NutriTrack database)"):
+                    for src in sources[:4]:
+                        st.markdown(f"**{src['name']}** ({src['type']}) — {src['text'][:120]}...")
+
+        # Save assistant message
+        st.session_state.chat_history.append({
+            "role":    "assistant",
+            "content": answer,
+            "sources": sources,
+        })
+        st.rerun()
+
+    # ── Clear chat button ─────────────────────────────────────────────────────
+    if st.session_state.chat_history:
+        st.markdown("---")
+        if st.button("🗑️ Clear Chat", type="secondary"):
+            st.session_state.chat_history = []
+            st.rerun()
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # MAIN ROUTER
 # ══════════════════════════════════════════════════════════════════════════════
 render_header()
@@ -619,5 +732,7 @@ elif screen == "cook":
     screen_cook()
 elif screen == "summary":
     screen_summary()
+elif screen == "nutribot":
+    screen_nutribot()
 
 render_nav()
